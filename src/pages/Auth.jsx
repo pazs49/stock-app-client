@@ -11,6 +11,8 @@ import { SignUpForm } from "@/components/SignUpForm";
 
 import { useState } from "react";
 
+import Loading from "@/pages/Loading";
+
 export default function Page() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -22,7 +24,7 @@ export default function Page() {
   });
 
   if (isLoading) {
-    return <h1>Loading...</h1>;
+    return <Loading></Loading>;
   }
 
   if (isLoggedIn) {

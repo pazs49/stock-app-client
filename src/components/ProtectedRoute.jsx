@@ -2,6 +2,8 @@ import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { checkToken } from "@/api/auth/auth";
 
+import Loading from "@/pages/Loading";
+
 function ProtectedRoute({ children }) {
   const { data: isLoggedIn, isLoading } = useQuery({
     queryKey: ["checkToken"],
@@ -11,7 +13,7 @@ function ProtectedRoute({ children }) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading></Loading>;
   }
 
   if (!isLoggedIn) {
