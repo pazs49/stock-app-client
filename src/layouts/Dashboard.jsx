@@ -39,7 +39,7 @@ const Dashboard = () => {
           Logout
         </Button>
         <p>{`BALANCE: ${userInfo?.data.attributes.balance}`}</p>
-        {console.log("aaa", userInfo)}
+        {/* {console.log("aaa", userInfo)} */}
         <p>{`EMAIL: ${userInfo?.meta.email}`}</p>
       </header>
       <div>{isAdmin() ? <Admin /> : <User />}</div>
