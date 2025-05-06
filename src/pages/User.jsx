@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import Stock from "@/components/User/stock";
+
 import { fetchStocks } from "@/api/stocks/stocks";
 import { fetchUserStocks } from "@/api/stocks/stocks";
 import { buyStock } from "@/api/stocks/stocks";
@@ -8,6 +10,7 @@ import { sellStock } from "@/api/stocks/stocks";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 import React, { useState } from "react";
 
@@ -31,13 +34,13 @@ const User = () => {
   const [stockQty, setStockQty] = useState(0);
   const [hasStock, setHasStock] = useState(false);
 
+  const navigate = useNavigate();
+
   const { data: userStocks, isLoading } = useQuery({
     queryKey: ["user-stocks"],
     queryFn: fetchUserStocks,
     staleTime: 60 * 60 * 1000,
   });
-
-  console.log(userStocks);
 
   if (isLoading) {
     return <Loading />;
@@ -49,7 +52,7 @@ const User = () => {
         <Input
           placeholder="Stock"
           value={stock}
-          onChange={(e) => setStock(e.target.value)}
+          onChange={(e) => setStock(e.target.value.toUpperCase())}
         />
         <Button
           onClick={async () => {
@@ -71,14 +74,9 @@ const User = () => {
                 price: latestData["4. close"],
                 volume: latestData["5. volume"],
               });
-
-              console.log(response.data);
-              console.log(latestDate);
-              console.log(latestData);
             } else {
               setHasStock(false);
               setStockData({});
-              console.log(response.error);
             }
           }}
         >
@@ -119,10 +117,12 @@ const User = () => {
       )}
 
       <div className="flex justify-center mt-4">
-        <Button>Transactions History</Button>
+        <Button onClick={() => navigate("/user-transactions")}>
+          Transactions History
+        </Button>
       </div>
 
-      {/* User list */}
+      {/* Stocks list */}
       <Table>
         <TableCaption>Stocks</TableCaption>
         <TableHeader>
@@ -134,66 +134,9 @@ const User = () => {
         </TableHeader>
         <TableBody>
           {Array.isArray(userStocks?.data) ? (
-            userStocks.data.map((stock) => (
-              <TableRow key={stock.id}>
-                <TableCell className="font-medium">{stock.name}</TableCell>
-                <TableCell className="font-medium">{stock.price}</TableCell>
-                <TableCell className="font-medium">{stock.qty}</TableCell>
-                <TableCell className="font-medium">
-                  <Input
-                    value={stockQty}
-                    onChange={(e) => {
-                      if (e.target.value < 0) {
-                        setStockQty(0);
-                        return;
-                      }
-                      setStockQty(e.target.value);
-                    }}
-                    type="number"
-                    placeholder="QTY"
-                    min={0}
-                  />
-                </TableCell>
-                <TableCell className="font-medium">
-                  <Button
-                    onClick={async () => {
-                      if (stockQty <= 0) {
-                        toast.error("Quantity must be greater than 0");
-                        return;
-                      }
-                      const response = await sellStock(stockQty, stock.name);
-                      if (response.ok) {
-                        toast.success("Stock sold!");
-                        queryClient.invalidateQueries(["user-stocks"]);
-                      } else {
-                        toast.error(response.error.message);
-                      }
-                    }}
-                  >
-                    Sell
-                  </Button>
-                </TableCell>
-                <TableCell className="font-medium">
-                  <Button
-                    onClick={async () => {
-                      if (stockQty <= 0) {
-                        toast.error("Quantity must be greater than 0");
-                        return;
-                      }
-                      const response = await buyStock(stockQty, stock.name);
-                      if (response.ok) {
-                        toast.success("Stock bought!");
-                        queryClient.invalidateQueries(["user-stocks"]);
-                      } else {
-                        toast.error(response.error.message);
-                      }
-                    }}
-                  >
-                    Buy
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+            userStocks.data.map(
+              (stock) => stock.qty > 0 && <Stock key={stock.id} stock={stock} />
+            )
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
