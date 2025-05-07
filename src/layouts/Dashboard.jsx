@@ -9,6 +9,17 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import { CircleDollarSign } from "lucide-react";
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -19,7 +30,7 @@ const Dashboard = () => {
 
   const isAdmin = () => {
     if (userInfo?.data) {
-      return userInfo.data.attributes.admin;
+      return userInfo?.data?.attributes.admin;
     }
     return false;
   };
@@ -38,11 +49,35 @@ const Dashboard = () => {
         >
           Logout
         </Button>
-        <p>{`BALANCE: ${userInfo?.data.attributes.balance}`}</p>
+        <p className="flex items-center gap-2 text-md font-semibold">
+          {isAdmin() ? (
+            "Admin"
+          ) : (
+            <>
+              <CircleDollarSign />
+              {`${userInfo?.data.attributes.balance}`}
+              <CircleDollarSign />
+            </>
+          )}
+        </p>
         {/* {console.log("aaa", userInfo)} */}
-        <p>{`EMAIL: ${userInfo?.meta.email}`}</p>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Avatar>
+                <AvatarImage src="#" />
+                <AvatarFallback className={"cursor-pointer"}>
+                  {userInfo?.meta.email[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{userInfo?.meta.email}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </header>
-      <div>{isAdmin() ? <Admin /> : <User />}</div>
+      <div className="mt-3">{isAdmin() ? <Admin /> : <User />}</div>
     </div>
   );
 };

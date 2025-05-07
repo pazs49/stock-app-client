@@ -1,10 +1,9 @@
-import {
-  fetchAllUsers,
-  adminCreateUser,
-  adminApproveUser,
-} from "@/api/user/user";
+import { fetchAllUsers, adminCreateUser } from "@/api/user/user";
 
 import UserRow from "@/components/Admin/UserRow";
+
+import PaginationNav from "@/components/PaginationNav";
+import usePaginationData from "@/hooks/usePaginationData";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,8 @@ import {
 } from "@/components/ui/table";
 
 import React, { useState } from "react";
+import ReactDOM from "react-dom";
+import ReactPaginate from "react-paginate";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -38,10 +39,24 @@ const Admin = () => {
     queryFn: fetchAllUsers,
   });
 
+  const [search, setSearch] = useState("");
+
+  const filteredUsers = users?.data?.data?.filter(
+    (user) =>
+      user.attributes.email.toLowerCase().includes(search.toLowerCase()) ||
+      (search === "pending" && !user.attributes["confirmed-at"])
+  );
+
+  const { currentItems, pageCount, handlePageClick } = usePaginationData(
+    filteredUsers,
+    10
+  );
+
   if (isLoading) {
     return <Loading></Loading>;
   }
 
+  // console.log(filteredUsers);
   return (
     <div>
       <div className="flex justify-center">
@@ -99,21 +114,33 @@ const Admin = () => {
         </Button>
       </div>
       {/* User list */}
-      <Table>
-        <TableCaption>All Users</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Email</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Balance</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.data.data.map((user) => (
-            <UserRow user={user} />
-          ))}
-        </TableBody>
-      </Table>
+      <div className="mt-4">
+        <h1 className="text-lg font-bold text-center">Users</h1>
+        <Input
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
+          type="text"
+          placeholder="Search"
+        />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Email</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Balance</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentItems.map((user) => (
+              <UserRow key={user.id} user={user} />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <PaginationNav handlePageClick={handlePageClick} pageCount={pageCount} />
     </div>
   );
 };

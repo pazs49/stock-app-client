@@ -28,7 +28,7 @@ const UserRow = ({ user }) => {
 
   return (
     <TableRow key={user.id}>
-      {console.log(user)}
+      {/* {console.log(user)} */}
       <TableCell className="font-medium">
         <Link to={`/admin/user/${user.id}`} className="underline">
           {user.attributes.email}

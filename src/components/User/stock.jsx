@@ -23,12 +23,13 @@ import {
 
 const Stock = ({ stock }) => {
   const queryClient = useQueryClient();
-  const [qty, setQty] = useState();
+  const [qty, setQty] = useState(0);
   return (
     <TableRow key={stock.id}>
       <TableCell className="font-medium">{stock.name}</TableCell>
       <TableCell className="font-medium">{stock.price}</TableCell>
       <TableCell className="font-medium">{stock.qty}</TableCell>
+      <TableCell className="font-medium">{stock.qty * stock.price}</TableCell>
       <TableCell className="font-medium">
         <Input
           value={qty}
@@ -47,8 +48,12 @@ const Stock = ({ stock }) => {
       <TableCell className="font-medium">
         <Button
           onClick={async () => {
-            if (qty <= 0) {
+            if (qty <= 0 || !qty) {
               toast.error("Quantity must be greater than 0");
+              return;
+            }
+            if (qty > stock.qty) {
+              toast.error("Quantity must be less than or equal to stock qty");
               return;
             }
             const response = await sellStock(qty, stock.name);
@@ -67,7 +72,7 @@ const Stock = ({ stock }) => {
       <TableCell className="font-medium">
         <Button
           onClick={async () => {
-            if (qty <= 0) {
+            if (qty <= 0 || !qty) {
               toast.error("Quantity must be greater than 0");
               return;
             }
