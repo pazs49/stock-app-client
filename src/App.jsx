@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import UserTransactions from "./pages/UserTransactions";
 import AdminTransactions from "./pages/AdminTransactions";
 import UserProfile from "./pages/UserProfile";
+import UserInfo from "./pages/UserInfo";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -42,6 +43,22 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <UserProfile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/user-info",
+    element: (
+      <ProtectedRoute>
+        <UserInfo />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "*",
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
       </ProtectedRoute>
     ),
   },

@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserTransactions } from "@/api/user/transactions";
 import Loading from "@/pages/Loading";
+import PaginationNav from "@/components/PaginationNav";
+import usePaginationData from "@/hooks/usePaginationData";
 
 import {
   Table,
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -21,15 +22,48 @@ const AdminTransactions = () => {
     staleTime: 60 * 60 * 1000,
   });
 
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const transactionsArray = Array.isArray(userTransactions?.data?.data)
+    ? userTransactions.data.data
+    : [];
+
+  const filteredTransactions = transactionsArray.filter((transaction) => {
+    const email = transaction.attributes.email.toLowerCase();
+    const symbol = transaction.attributes.name.toLowerCase();
+    return (
+      email.includes(search.toLowerCase()) ||
+      symbol.includes(search.toLowerCase())
+    );
+  });
+
+  const { currentItems, pageCount, handlePageClick } = usePaginationData(
+    filteredTransactions,
+    10,
+    currentPage,
+    setCurrentPage
+  );
+
   if (isLoading) {
     return <Loading />;
   }
 
   return (
-    <div className="flex flex-col gap-4 items-center">
-      <div>
+    <div className="flex justify-center">
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow p-6 flex flex-col gap-2">
+        <h1 className="text-lg font-bold text-center">Transactions</h1>
+        <input
+          type="text"
+          placeholder="Search by user email or symbol"
+          className="px-4 py-2 border rounded-md w-full"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(0);
+          }}
+        />
         <Table>
-          <TableCaption>Transactions</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>User's Email</TableHead>
@@ -41,8 +75,8 @@ const AdminTransactions = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.isArray(userTransactions?.data?.data) ? (
-              userTransactions.data.data.map((transaction) => (
+            {currentItems.length > 0 ? (
+              currentItems.map((transaction) => (
                 <TableRow
                   key={transaction.id}
                   className={`${
@@ -80,6 +114,11 @@ const AdminTransactions = () => {
             )}
           </TableBody>
         </Table>
+
+        <PaginationNav
+          handlePageClick={handlePageClick}
+          pageCount={pageCount}
+        />
       </div>
     </div>
   );

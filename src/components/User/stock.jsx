@@ -2,11 +2,17 @@ import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RefreshCcw } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { toast } from "sonner";
 
-import { sellStock } from "@/api/stocks/stocks";
-import { buyStock } from "@/api/stocks/stocks";
+import { sellStock, buyStock, updateStock } from "@/api/stocks/stocks";
 
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -47,6 +53,7 @@ const Stock = ({ stock }) => {
       </TableCell>
       <TableCell className="font-medium">
         <Button
+          className={"bg-red-500 hover:bg-red-600"}
           onClick={async () => {
             if (qty <= 0 || !qty) {
               toast.error("Quantity must be greater than 0");
@@ -71,6 +78,7 @@ const Stock = ({ stock }) => {
       </TableCell>
       <TableCell className="font-medium">
         <Button
+          className="bg-green-500 hover:bg-green-600"
           onClick={async () => {
             if (qty <= 0 || !qty) {
               toast.error("Quantity must be greater than 0");
@@ -88,6 +96,29 @@ const Stock = ({ stock }) => {
         >
           Buy
         </Button>
+      </TableCell>
+      <TableCell className="font-medium">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="bg-blue-500 hover:bg-blue-600"
+                onClick={async () => {
+                  const data = await updateStock(stock.name);
+                  queryClient.invalidateQueries(["user-stocks"]);
+                  if (data.ok) {
+                    toast.success("Stock updated!");
+                  }
+                }}
+              >
+                <RefreshCcw />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Get Updated {stock.name} Data</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </TableCell>
     </TableRow>
   );

@@ -67,7 +67,7 @@ const Admin = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                console.log(email);
+                // console.log(email);
               }}
               type="email"
               placeholder="Email"
@@ -93,8 +93,7 @@ const Admin = () => {
                 if (response.ok) {
                   toast.success("User created!");
                 } else {
-                  // console.log(response);
-                  toast.error(response.error.message);
+                  toast.error("Check your inputs!");
                 }
               }}
               className="h-full"
@@ -127,7 +126,11 @@ const Admin = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Email</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>First Name</TableHead>
+              <TableHead>Last Name</TableHead>
+              <TableHead>Birthdate</TableHead>
+              <TableHead>Address</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Balance</TableHead>
             </TableRow>

@@ -8,6 +8,7 @@ import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import Loading from "@/pages/Loading";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -23,17 +24,22 @@ import { CircleDollarSign } from "lucide-react";
 const Dashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: userInfo } = useQuery({
+  const { data: userInfo, isLoading } = useQuery({
     queryKey: ["user-info"],
     queryFn: () => fetchUserInfo(),
   });
 
   const isAdmin = () => {
     if (userInfo?.data) {
+      // console.log("user", userInfo);
       return userInfo?.data?.attributes.admin;
     }
     return false;
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col items-center mt-3 mx-3">
@@ -60,14 +66,14 @@ const Dashboard = () => {
             </>
           )}
         </p>
-        {/* {console.log("aaa", userInfo)} */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Avatar>
+              <Avatar onClick={() => navigate("/user-info")}>
                 <AvatarImage src="#" />
                 <AvatarFallback className={"cursor-pointer"}>
-                  {userInfo?.meta.email[0].toUpperCase()}
+                  {userInfo?.data?.attributes["first-name"][0].toUpperCase() +
+                    userInfo?.data?.attributes["last-name"][0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </TooltipTrigger>

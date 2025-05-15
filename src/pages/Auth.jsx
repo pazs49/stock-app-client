@@ -53,8 +53,8 @@ export default function Page() {
           ) : (
             <SignUpForm
               setIsLoginForm={setIsLoginForm}
-              onSubmit={async (email, password) => {
-                const response = await signup(email, password);
+              onSubmit={async (email, password, personalInfo) => {
+                const response = await signup(email, password, personalInfo);
                 if (response.ok) {
                   setIsLoginForm(true);
                   toast.success("Sign up successful!");

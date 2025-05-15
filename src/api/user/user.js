@@ -12,6 +12,59 @@ export const fetchUserInfo = async () => {
     );
     if (response.ok) {
       const data = await response.json();
+      // console.log(data);
+      return { ok: true, ...data };
+    } else {
+      const error = await response.json();
+      throw new Error(error.error_description.join(","));
+    }
+  } catch (error) {
+    return { ok: false, error };
+  }
+};
+
+export const userUpdateProfile = async (data) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/v1/user_info/edit_user_info`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ user_info: { ...data } }),
+      }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data);
+      return { ok: true, ...data };
+    } else {
+      const error = await response.json();
+      throw new Error(error.error_description.join(","));
+    }
+  } catch (error) {
+    return { ok: false, error };
+  }
+};
+
+export const userDeposit = async (amount) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/v1/user_info/user_deposit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ amount }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
       return { ok: true, ...data };
     } else {
       const error = await response.json();
@@ -73,6 +126,34 @@ export const adminCreateUser = async (email, password, cb) => {
     } else {
       const error = await response.json();
       throw new Error(error.error.join(","));
+    }
+  } catch (error) {
+    return { ok: false, error };
+  }
+};
+
+export const adminUpdateUserInfo = async (userId, updatedFields) => {
+  try {
+    const response = await fetch(
+      `${
+        import.meta.env.VITE_API_URL
+      }/api/v1/user_info/edit_user_info_admin/${userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(updatedFields),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return { ok: true, data };
+    } else {
+      const error = await response.json();
+      return { ok: false, error };
     }
   } catch (error) {
     return { ok: false, error };

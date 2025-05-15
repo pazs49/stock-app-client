@@ -105,3 +105,31 @@ export const sellStock = async (qty, stockName) => {
     return { ok: false, error };
   }
 };
+
+export const updateStock = async (symbol) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/v1/stocks/update_stock_price`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          symbol: symbol,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return { ok: true, data };
+    } else {
+      const error = await response.json();
+      throw new Error(error.error.join(","));
+    }
+  } catch (error) {
+    return { ok: false, error };
+  }
+};

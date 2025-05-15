@@ -73,7 +73,8 @@ const User = () => {
               return;
             }
             const response = await fetchStocks(stock);
-            if (response.ok) {
+            console.log(response);
+            if (!response.data["Error Message"]) {
               setHasStock(true);
               const timeSeries = response.data["Time Series (Daily)"];
               const dates = Object.keys(timeSeries);
@@ -85,8 +86,10 @@ const User = () => {
                 volume: latestData["5. volume"],
               });
             } else {
+              toast.error("Stock symbol not found");
               setHasStock(false);
               setStockData({});
+              setStock("");
             }
           }}
         >
@@ -112,6 +115,7 @@ const User = () => {
             }}
           />
           <Button
+            className="bg-green-500 hover:bg-green-600"
             onClick={async () => {
               const response = await buyStock(stockQty, stock);
               if (response.ok) {

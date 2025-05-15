@@ -1,39 +1,112 @@
-import { adminApproveUser } from "@/api/user/user";
-import { adminUpdateUserBalance } from "@/api/user/user";
-
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
+import { TableRow, TableCell } from "@/components/ui/table";
 import { Link } from "react-router-dom";
-
-import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { adminApproveUser, adminUpdateUserInfo } from "@/api/user/user";
+
+const EditableCell = ({ value, onSave }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+
+  const commitChange = async () => {
+    setIsEditing(false);
+    if (editValue !== value) {
+      const success = await onSave(editValue);
+      if (!success) {
+        setEditValue(value);
+      }
+    }
+  };
+
+  return isEditing ? (
+    <Input
+      type="text"
+      value={editValue}
+      onChange={(e) => setEditValue(e.target.value)}
+      onBlur={commitChange}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          commitChange();
+        } else if (e.key === "Escape") {
+          setIsEditing(false);
+          setEditValue(value);
+        }
+      }}
+      autoFocus
+      className="w-full"
+    />
+  ) : (
+    <div
+      className="cursor-pointer"
+      onClick={() => setIsEditing(true)}
+      title="Click to edit"
+    >
+      {value || "-"}
+    </div>
+  );
+};
 
 const UserRow = ({ user }) => {
-  const [isEditingBalance, setIsEditingBalance] = useState(false);
-  const [balance, setBalance] = useState(user.attributes["user-info"].balance);
-
   const queryClient = useQueryClient();
+
+  const handleUpdate = async (field, newValue) => {
+    try {
+      const response = await adminUpdateUserInfo(user.id, {
+        [field]: newValue,
+      });
+      if (response.ok) {
+        toast.success(field.replace(/_/g, " ") + " updated!");
+        queryClient.invalidateQueries(["users"]);
+        return true;
+      } else {
+        toast.error(response.error?.message || "Failed to update " + field);
+        return false;
+      }
+    } catch (error) {
+      toast.error("Failed to update " + field);
+      return false;
+    }
+  };
 
   return (
     <TableRow key={user.id}>
-      {/* {console.log(user)} */}
       <TableCell className="font-medium">
         <Link to={`/admin/user/${user.id}`} className="underline">
           {user.attributes.email}
         </Link>
       </TableCell>
+
+      <TableCell className="font-medium">
+        <EditableCell
+          value={user.attributes["user-info"].first_name}
+          onSave={(val) => handleUpdate("first_name", val)}
+        />
+      </TableCell>
+
+      <TableCell className="font-medium">
+        <EditableCell
+          value={user.attributes["user-info"].last_name}
+          onSave={(val) => handleUpdate("last_name", val)}
+        />
+      </TableCell>
+
+      <TableCell className="font-medium">
+        <EditableCell
+          value={user.attributes["user-info"].birthdate}
+          onSave={(val) => handleUpdate("birthdate", val)}
+        />
+      </TableCell>
+
+      <TableCell className="font-medium">
+        <EditableCell
+          value={user.attributes["user-info"].address}
+          onSave={(val) => handleUpdate("address", val)}
+        />
+      </TableCell>
+
       <TableCell className="font-medium">
         <Button
           onClick={async () => {
@@ -45,11 +118,11 @@ const UserRow = ({ user }) => {
               toast.success("User approved!");
               queryClient.invalidateQueries(["users"]);
             } else {
-              toast.error(response.error.message);
+              toast.error(response.error?.message);
             }
           }}
           size="sm"
-          className={` ${
+          className={`${
             user.attributes["confirmed-at"]
               ? "bg-green-600 cursor-not-allowed"
               : "bg-red-600 cursor-pointer"
@@ -58,29 +131,9 @@ const UserRow = ({ user }) => {
           {user.attributes["confirmed-at"] ? "Confirmed" : "Pending"}
         </Button>
       </TableCell>
-      <TableCell
-        onClick={() => {
-          setIsEditingBalance(true);
-        }}
-        className="font-medium cursor-pointer"
-      >
-        {isEditingBalance ? (
-          <Input
-            className="w-24 h-6 px-0 py-0 border-none bg-transparent text-inherit focus:ring-0 focus:outline-none"
-            type="number"
-            value={balance}
-            onChange={(e) => {
-              setBalance(e.target.value);
-            }}
-            onBlur={() => {
-              setIsEditingBalance(false);
-              adminUpdateUserBalance(user.id, balance);
-            }}
-            autoFocus
-          />
-        ) : (
-          balance
-        )}
+
+      <TableCell className="font-medium">
+        {user.attributes["user-info"].balance}
       </TableCell>
     </TableRow>
   );

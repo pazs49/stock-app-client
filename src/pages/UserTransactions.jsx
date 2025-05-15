@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserTransactions } from "@/api/user/transactions";
 import Loading from "@/pages/Loading";
+import PaginationNav from "@/components/PaginationNav";
+import usePaginationData from "@/hooks/usePaginationData";
 
 import {
   Table,
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -21,17 +22,49 @@ const UserTransactions = () => {
     staleTime: 60 * 60 * 1000,
   });
 
-  console.log(userTransactions);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const transactionsArray = Array.isArray(userTransactions?.data?.data)
+    ? userTransactions.data.data
+    : [];
+
+  const filteredTransactions = transactionsArray.filter((transaction) => {
+    const action = transaction.attributes.action.toLowerCase();
+    const symbol = transaction.attributes.name.toLowerCase();
+    const query = search.toLowerCase();
+    return action.includes(query) || symbol.includes(query);
+  });
+
+  const { currentItems, pageCount, handlePageClick } = usePaginationData(
+    filteredTransactions,
+    10,
+    currentPage,
+    setCurrentPage
+  );
 
   if (isLoading) {
     return <Loading />;
   }
 
   return (
-    <div className="flex flex-col gap-4 items-center">
-      <div>
+    <div className="flex justify-center">
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow p-6 flex flex-col gap-2">
+        <h1 className="text-lg font-bold text-center">Transactions</h1>
+
+        <input
+          type="text"
+          placeholder="Search by action or symbol"
+          className="px-4 py-2 border rounded-md w-full mb-4"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(0);
+          }}
+        />
+
         <Table>
-          <TableCaption>Transactions</TableCaption>
+          <TableCaption>User Transactions</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Action</TableHead>
@@ -42,8 +75,8 @@ const UserTransactions = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.isArray(userTransactions?.data?.data) ? (
-              userTransactions.data.data.map((transaction) => (
+            {currentItems.length > 0 ? (
+              currentItems.map((transaction) => (
                 <TableRow
                   key={transaction.id}
                   className={`${
@@ -71,13 +104,18 @@ const UserTransactions = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No transactions
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+
+        <PaginationNav
+          handlePageClick={handlePageClick}
+          pageCount={pageCount}
+        />
       </div>
     </div>
   );
